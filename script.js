@@ -1,100 +1,71 @@
-/* ==========================================
-   EC業務効率化支援サイト – script.js
-   ========================================== */
-
-(function () {
+(() => {
   'use strict';
 
-  /* ---------- ヘッダー: スクロールで影を付与 ---------- */
   const header = document.getElementById('header');
-
-  function onScroll() {
-    header.classList.toggle('scrolled', window.scrollY > 10);
-  }
-
-  window.addEventListener('scroll', onScroll, { passive: true });
-  onScroll(); // 初期チェック
-
-  /* ---------- ハンバーガーメニュー ---------- */
-  const hamburger = document.getElementById('hamburger');
   const nav = document.getElementById('nav');
+  const hamburger = document.getElementById('hamburger');
 
-  hamburger.addEventListener('click', function () {
-    const isOpen = nav.classList.toggle('open');
-    hamburger.classList.toggle('open', isOpen);
-    hamburger.setAttribute('aria-expanded', String(isOpen));
-    hamburger.setAttribute('aria-label', isOpen ? 'メニューを閉じる' : 'メニューを開く');
-  });
+  const onScroll = () => {
+    header.classList.toggle('scrolled', window.scrollY > 8);
+  };
+  window.addEventListener('scroll', onScroll, { passive: true });
+  onScroll();
 
-  // ナビリンクをタップしたらメニューを閉じる
-  nav.querySelectorAll('.nav-link').forEach(function (link) {
-    link.addEventListener('click', function () {
-      nav.classList.remove('open');
-      hamburger.classList.remove('open');
-      hamburger.setAttribute('aria-expanded', 'false');
-      hamburger.setAttribute('aria-label', 'メニューを開く');
+  if (hamburger && nav) {
+    hamburger.addEventListener('click', () => {
+      const open = nav.classList.toggle('open');
+      hamburger.classList.toggle('open', open);
+      hamburger.setAttribute('aria-expanded', String(open));
+      hamburger.setAttribute('aria-label', open ? 'メニューを閉じる' : 'メニューを開く');
     });
-  });
 
-  // メニュー外をタップしたら閉じる
-  document.addEventListener('click', function (e) {
-    if (!header.contains(e.target)) {
-      nav.classList.remove('open');
-      hamburger.classList.remove('open');
-      hamburger.setAttribute('aria-expanded', 'false');
-    }
-  });
-
-  /* ---------- スクロールアニメーション (IntersectionObserver) ---------- */
-  const fadeEls = document.querySelectorAll('.fade-in');
-
-  if ('IntersectionObserver' in window) {
-    const observer = new IntersectionObserver(
-      function (entries) {
-        entries.forEach(function (entry) {
-          if (entry.isIntersecting) {
-            entry.target.classList.add('visible');
-            observer.unobserve(entry.target);
-          }
-        });
-      },
-      { threshold: 0.12 }
-    );
-
-    fadeEls.forEach(function (el) {
-      observer.observe(el);
+    nav.querySelectorAll('a').forEach(link => {
+      link.addEventListener('click', () => {
+        nav.classList.remove('open');
+        hamburger.classList.remove('open');
+        hamburger.setAttribute('aria-expanded', 'false');
+        hamburger.setAttribute('aria-label', 'メニューを開く');
+      });
     });
-  } else {
-    // フォールバック: アニメーションなしで表示
-    fadeEls.forEach(function (el) {
-      el.classList.add('visible');
+
+    document.addEventListener('click', (e) => {
+      if (!header.contains(e.target)) {
+        nav.classList.remove('open');
+        hamburger.classList.remove('open');
+        hamburger.setAttribute('aria-expanded', 'false');
+      }
     });
   }
 
-  /* ---------- FAQ アコーディオン ---------- */
-  const faqItems = document.querySelectorAll('.faq-item');
-
-  faqItems.forEach(function (item) {
-    const button = item.querySelector('.faq-question');
-    const answer = item.querySelector('.faq-answer');
-
-    button.addEventListener('click', function () {
-      const isExpanded = button.getAttribute('aria-expanded') === 'true';
-
-      // 他のアイテムを閉じる
-      faqItems.forEach(function (other) {
-        if (other !== item) {
-          const otherBtn = other.querySelector('.faq-question');
-          const otherAns = other.querySelector('.faq-answer');
-          otherBtn.setAttribute('aria-expanded', 'false');
-          otherAns.hidden = true;
+  const fadeEls = document.querySelectorAll('.fade-in');
+  if ('IntersectionObserver' in window) {
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('visible');
+          observer.unobserve(entry.target);
         }
       });
+    }, { threshold: 0.12 });
 
-      // 自身をトグル
-      button.setAttribute('aria-expanded', String(!isExpanded));
-      answer.hidden = isExpanded;
+    fadeEls.forEach(el => observer.observe(el));
+  } else {
+    fadeEls.forEach(el => el.classList.add('visible'));
+  }
+
+  document.querySelectorAll('.faq-item').forEach((item) => {
+    const btn = item.querySelector('.faq-question');
+    const answer = item.querySelector('.faq-answer');
+    btn?.addEventListener('click', () => {
+      const expanded = btn.getAttribute('aria-expanded') === 'true';
+      document.querySelectorAll('.faq-item').forEach((other) => {
+        const otherBtn = other.querySelector('.faq-question');
+        const otherAnswer = other.querySelector('.faq-answer');
+        otherBtn?.setAttribute('aria-expanded', 'false');
+        if (otherAnswer) otherAnswer.hidden = true;
+      });
+      btn.setAttribute('aria-expanded', String(!expanded));
+      if (answer) answer.hidden = expanded;
     });
   });
-
 })();
